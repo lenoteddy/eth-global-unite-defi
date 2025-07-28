@@ -61,8 +61,6 @@ function App() {
 							<h2 className="text-2xl font-semibold">Track Invoice</h2>
 						</div>
 					)}
-					{/* {menu === "create" && <div>Create Invoice Content</div>}
-					{menu === "list" && <div>Invoice List Content</div>} */}
 				</div>
 			</main>
 			<footer>

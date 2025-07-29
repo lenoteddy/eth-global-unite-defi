@@ -1,9 +1,47 @@
 import { ConnectKitButton } from "connectkit";
 import Logo from "./assets/logo.webp";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import APIHelper from "./helpers/APIHelper";
+import { useAccount } from "wagmi";
+import StringHelper from "./helpers/StringHelper";
+
+const DashboardMenu = ({ address }: { address: string | undefined }) => {
+	const [balances, setBalances] = useState([]);
+
+	// const
+	useEffect(() => {
+		if (address !== undefined) {
+			(async () => {
+				try {
+					const { data } = await APIHelper.getWalletBalances({ address });
+					setBalances(data);
+				} catch (e) {
+					console.error(e);
+				}
+			})();
+		}
+	}, [address]);
+
+	return (
+		<div>
+			<h2 className="text-2xl font-semibold">Dashboard</h2>
+			<div className="mt-2">
+				<div>Token Balances:</div>
+				<ul className="pl-4 list-disc">
+					{Object.entries(balances).map(([key, val]) => (
+						<li key={key}>
+							{StringHelper.tokenAddressValue(key, val)} {StringHelper.tokenAddressName(key)}
+						</li>
+					))}
+				</ul>
+			</div>
+		</div>
+	);
+};
 
 function App() {
 	const [menu, setMenu] = useState("home");
+	const { address } = useAccount();
 
 	return (
 		<div className="container min-h-screen">
@@ -46,11 +84,7 @@ function App() {
 					</ul>
 				</nav>
 				<div className="menu-box p-4 md:col-span-3 border-2 border-gray-200 rounded-xl bg-white">
-					{menu === "home" && (
-						<div>
-							<h2 className="text-2xl font-semibold">Dashboard</h2>
-						</div>
-					)}
+					{menu === "home" && <DashboardMenu address={address} />}
 					{menu === "create" && (
 						<div>
 							<h2 className="text-2xl font-semibold">Create Invoice</h2>

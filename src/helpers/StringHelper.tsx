@@ -1,3 +1,8 @@
+const shortAddress = (address: string, startLength: number = 6, endLength: number = 4) => {
+	if (!address || address.length < startLength + endLength + 2) return address;
+	return `${address.slice(0, startLength)}...${address.slice(-endLength)}`;
+};
+
 const tokenAddressName = (address: string) => {
 	const list: { [key: string]: string } = {
 		"0xdac17f958d2ee523a2206206994597c13d831ec7": "USDT",
@@ -17,6 +22,7 @@ const tokenAddressValue = (address: string, amount: number) => {
 };
 
 const StringHelper = {
+	shortAddress,
 	tokenAddressName,
 	tokenAddressValue,
 };

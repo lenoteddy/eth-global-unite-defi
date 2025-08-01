@@ -107,6 +107,7 @@ function App() {
 	const [invoiceDate, setInvoiceDate] = useState("");
 	const [invoiceDueDate, setInvoiceDueDate] = useState("");
 	const [invoiceWallet, setInvoiceWallet] = useState("");
+	const [invoiceCurrency, setInvoiceCurrency] = useState("");
 	const [invoiceItemDescription, setInvoiceItemDescription] = useState("");
 	const [invoiceItemPrice, setInvoiceItemPrice] = useState<number>(0);
 	const [invoiceItemQty, setInvoiceItemQty] = useState<number>(0);
@@ -124,6 +125,10 @@ function App() {
 			}
 		})();
 	}, []);
+
+	useEffect(() => {
+		if (address) setInvoiceWallet(address);
+	}, [address]);
 
 	return (
 		<div className="container min-h-screen">
@@ -235,17 +240,27 @@ function App() {
 									/>
 								</div>
 							</div>
-							<div className="mb-4">
-								<label className="text-sm font-semibold">Your recipient address</label>
-								<input
-									type="text"
-									className="w-full px-2 border-2 rounded-xl"
-									placeholder="Your recipient address..."
-									value={invoiceWallet}
-									onChange={(e) => setInvoiceWallet(e.target.value)}
-								/>
+							<div className="grid grid-cols-3 gap-4">
+								<div className="col-span-2">
+									<label className="text-sm font-semibold">Your recipient address</label>
+									<input
+										type="text"
+										className="w-full px-2 border-2 rounded-xl"
+										placeholder="Your recipient address..."
+										value={invoiceWallet}
+										onChange={(e) => setInvoiceWallet(e.target.value)}
+									/>
+								</div>
+								<div>
+									<label className="text-sm font-semibold">Payment token</label>
+									<select className="w-full px-2 border-2 rounded-xl" value={invoiceCurrency} onChange={(e) => setInvoiceCurrency(e.target.value)}>
+										<option>--Choose token--</option>
+										<option value="0xdac17f958d2ee523a2206206994597c13d831ec7">USDT</option>
+										<option value="0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48">USDC</option>
+									</select>
+								</div>
 							</div>
-							<p className="text-md font-bold">Item List</p>
+							<p className="mt-4 text-md font-bold">Item List</p>
 							<div className="grid grid-cols-6 gap-4">
 								<div className="col-span-3">
 									<label className="text-sm font-semibold">Description</label>
@@ -291,20 +306,29 @@ function App() {
 								</button>
 							</div>
 							{showInvoice && (
-								<PDFViewer className="w-full min-h-screen">
-									<PDFDocument
-										invoiceName={invoiceName}
-										invoiceCustomerLabel={invoiceCustomerLabel}
-										invoiceCustomerName={invoiceCustomerName}
-										invoiceNumber={invoiceNumber}
-										invoiceDate={invoiceDate}
-										invoiceDueDate={invoiceDueDate}
-										invoiceWallet={invoiceWallet}
-										invoiceItemDescription={invoiceItemDescription}
-										invoiceItemPrice={invoiceItemPrice}
-										invoiceItemQty={invoiceItemQty}
-									/>
-								</PDFViewer>
+								<>
+									<PDFViewer className="w-full min-h-screen">
+										<PDFDocument
+											invoiceName={invoiceName}
+											invoiceCustomerLabel={invoiceCustomerLabel}
+											invoiceCustomerName={invoiceCustomerName}
+											invoiceNumber={invoiceNumber}
+											invoiceDate={invoiceDate}
+											invoiceDueDate={invoiceDueDate}
+											invoiceWallet={invoiceWallet}
+											invoiceCurrency={invoiceCurrency}
+											invoiceItemDescription={invoiceItemDescription}
+											invoiceItemPrice={invoiceItemPrice}
+											invoiceItemQty={invoiceItemQty}
+										/>
+									</PDFViewer>
+									<button
+										className="mt-4 py-2 px-4 border-2 rounded-xl font-semibold bg-white border-gray-300 cursor-pointer transition-all ease-in hover:bg-gray-200"
+										onClick={() => setShowInvoice(true)}
+									>
+										Save Invoice
+									</button>
+								</>
 							)}
 						</div>
 					)}

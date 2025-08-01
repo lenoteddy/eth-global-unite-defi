@@ -1,4 +1,5 @@
 import { Page, Text, View, Document, StyleSheet } from "@react-pdf/renderer";
+import StringHelper from "../helpers/StringHelper";
 
 // Create styles
 const styles = StyleSheet.create({
@@ -103,6 +104,9 @@ const styles = StyleSheet.create({
 		fontSize: ".8rem",
 		flexGrow: 1,
 	},
+	paymentBox: {
+		marginBottom: 10,
+	},
 	paymentText: {
 		fontSize: ".8rem",
 	},
@@ -115,6 +119,7 @@ type InvoiceProps = {
 	invoiceNumber: string;
 	invoiceDate: string;
 	invoiceDueDate: string;
+	invoiceCurrency: string;
 	invoiceWallet: string;
 	invoiceItemDescription: string;
 	invoiceItemPrice: number;
@@ -157,9 +162,10 @@ const PDFDocument = (props: InvoiceProps) => (
 					<Text style={[styles.colSubtotalValue, styles.textRight]}>${props.invoiceItemPrice * props.invoiceItemQty}</Text>
 				</View>
 			</View>
-			<View>
+			<View style={styles.paymentBox}>
 				<Text style={[styles.paymentText, styles.textBold]}>Please send your payment to:</Text>
-				<Text style={styles.paymentText}>{props.invoiceWallet}</Text>
+				<Text style={styles.paymentText}>- Address: {props.invoiceWallet}</Text>
+				<Text style={styles.paymentText}>- Token: {StringHelper.tokenAddressName(props.invoiceCurrency) + " (" + StringHelper.shortAddress(props.invoiceCurrency) + ")"}</Text>
 			</View>
 		</Page>
 	</Document>

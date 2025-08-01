@@ -289,9 +289,75 @@ const CreateInvoiceMenu = ({ address }: { address: string | undefined }) => {
 	);
 };
 
+const TrackInvoiceMenu = ({ address }: { address: string | undefined }) => {
+	const [invoiceName, setInvoiceName] = useState("");
+	const [invoiceCustomerName, setInvoiceCustomerName] = useState("");
+	const [invoiceCustomerLabel, setInvoiceCustomerLabel] = useState("");
+	const [invoiceNumber, setInvoiceNumber] = useState("");
+	const [invoiceDate, setInvoiceDate] = useState("");
+	const [invoiceDueDate, setInvoiceDueDate] = useState("");
+	const [invoiceWallet, setInvoiceWallet] = useState("");
+	const [invoiceCurrency, setInvoiceCurrency] = useState("");
+	const [invoiceItemDescription, setInvoiceItemDescription] = useState("");
+	const [invoiceItemPrice, setInvoiceItemPrice] = useState<number>(0);
+	const [invoiceItemQty, setInvoiceItemQty] = useState<number>(0);
+	const invoiceItemTotal = useMemo(() => {
+		return invoiceItemPrice * invoiceItemQty;
+	}, [invoiceItemPrice, invoiceItemQty]);
+
+	useEffect(() => {
+		if (address) {
+			setInvoiceWallet(address);
+			const invoiceData = localStorage.getItem("invoiceData");
+			if (invoiceData) {
+				const invoice: InvoiceProps = JSON.parse(invoiceData);
+				setInvoiceName(invoice.invoiceName);
+				setInvoiceCustomerName(invoice.invoiceCustomerName);
+				setInvoiceCustomerLabel(invoice.invoiceCustomerLabel);
+				setInvoiceNumber(invoice.invoiceNumber);
+				setInvoiceDate(invoice.invoiceDate);
+				setInvoiceDueDate(invoice.invoiceDueDate);
+				setInvoiceWallet(invoice.invoiceWallet);
+				setInvoiceCurrency(invoice.invoiceCurrency);
+				setInvoiceItemDescription(invoice.invoiceItemDescription);
+				setInvoiceItemPrice(invoice.invoiceItemPrice);
+				setInvoiceItemQty(invoice.invoiceItemQty);
+			}
+		}
+	}, [address]);
+
+	return (
+		<div>
+			<h2 className="mb-3 text-2xl font-semibold">Track Invoice</h2>
+			<div className="mb-4">
+				<div>Recipient: {invoiceWallet}</div>
+				<div>
+					Amount: {invoiceItemTotal} ${StringHelper.tokenAddressName(invoiceCurrency)}
+				</div>
+				<button className="mt-1 py-2 px-4 border-2 rounded-xl font-semibold bg-black border-black text-white cursor-pointer transition-all ease-in hover:bg-gray-800">Check Payment</button>
+			</div>
+			<PDFViewer className="w-full min-h-screen">
+				<PDFDocument
+					invoiceName={invoiceName}
+					invoiceCustomerLabel={invoiceCustomerLabel}
+					invoiceCustomerName={invoiceCustomerName}
+					invoiceNumber={invoiceNumber}
+					invoiceDate={invoiceDate}
+					invoiceDueDate={invoiceDueDate}
+					invoiceWallet={invoiceWallet}
+					invoiceCurrency={invoiceCurrency}
+					invoiceItemDescription={invoiceItemDescription}
+					invoiceItemPrice={invoiceItemPrice}
+					invoiceItemQty={invoiceItemQty}
+				/>
+			</PDFViewer>
+		</div>
+	);
+};
+
 function App() {
 	const { address } = useAccount();
-	const [menu, setMenu] = useState("create");
+	const [menu, setMenu] = useState("home");
 	const [showGasFeeInfo, setShowGasFeeInfo] = useState(false);
 	const [gasFee, setGasFee] = useState<FeeData>();
 
@@ -352,7 +418,7 @@ function App() {
 						<li className="pb-1">
 							<button
 								className={"menu w-full px-4 py-2 text-left font-semibold bg-gray-200 rounded-xl cursor-pointer " + (menu === "list" ? "active" : "")}
-								onClick={() => setMenu("list")}
+								onClick={() => setMenu("track")}
 							>
 								Track Invoice
 							</button>
@@ -362,11 +428,7 @@ function App() {
 				<div className="menu-box p-4 md:col-span-3 border-2 border-gray-200 rounded-xl bg-white">
 					{menu === "home" && <DashboardMenu address={address} />}
 					{menu === "create" && <CreateInvoiceMenu address={address} />}
-					{menu === "list" && (
-						<div>
-							<h2 className="text-2xl font-semibold">Track Invoice</h2>
-						</div>
-					)}
+					{menu === "track" && <TrackInvoiceMenu address={address} />}
 				</div>
 			</main>
 			<footer>

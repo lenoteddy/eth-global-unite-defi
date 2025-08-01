@@ -20,6 +20,20 @@ type FeeData = {
 	instant: FeeLevel;
 };
 
+type InvoiceProps = {
+	invoiceName: string;
+	invoiceCustomerLabel: string;
+	invoiceCustomerName: string;
+	invoiceNumber: string;
+	invoiceDate: string;
+	invoiceDueDate: string;
+	invoiceCurrency: string;
+	invoiceWallet: string;
+	invoiceItemDescription: string;
+	invoiceItemPrice: number;
+	invoiceItemQty: number;
+};
+
 const GasFeeInfo = ({ gasFee }: { gasFee: FeeData | undefined }) => {
 	return (
 		<div className="p-4 rounded-xl bg-white">
@@ -115,6 +129,24 @@ function App() {
 		return invoiceItemPrice * invoiceItemQty;
 	}, [invoiceItemPrice, invoiceItemQty]);
 
+	const setSaveInvoice = () => {
+		const invoice = {
+			invoiceName,
+			invoiceCustomerName,
+			invoiceCustomerLabel,
+			invoiceNumber,
+			invoiceDate,
+			invoiceDueDate,
+			invoiceWallet,
+			invoiceCurrency,
+			invoiceItemDescription,
+			invoiceItemPrice,
+			invoiceItemQty,
+		};
+		localStorage.setItem("invoiceData", JSON.stringify(invoice));
+		alert("Invoice Data has been saved");
+	};
+
 	useEffect(() => {
 		(async () => {
 			try {
@@ -127,11 +159,28 @@ function App() {
 	}, []);
 
 	useEffect(() => {
-		if (address) setInvoiceWallet(address);
+		if (address) {
+			setInvoiceWallet(address);
+			const invoiceData = localStorage.getItem("invoiceData");
+			if (invoiceData) {
+				const invoice: InvoiceProps = JSON.parse(invoiceData);
+				setInvoiceName(invoice.invoiceName);
+				setInvoiceCustomerName(invoice.invoiceCustomerName);
+				setInvoiceCustomerLabel(invoice.invoiceCustomerLabel);
+				setInvoiceNumber(invoice.invoiceNumber);
+				setInvoiceDate(invoice.invoiceDate);
+				setInvoiceDueDate(invoice.invoiceDueDate);
+				setInvoiceWallet(invoice.invoiceWallet);
+				setInvoiceCurrency(invoice.invoiceCurrency);
+				setInvoiceItemDescription(invoice.invoiceItemDescription);
+				setInvoiceItemPrice(invoice.invoiceItemPrice);
+				setInvoiceItemQty(invoice.invoiceItemQty);
+			}
+		}
 	}, [address]);
 
 	return (
-		<div className="container min-h-screen">
+		<div className="container min-h-screen mb-12">
 			<div className={"overlay " + (showGasFeeInfo ? "active" : "")} onClick={() => setShowGasFeeInfo(false)}>
 				<div className="overlay-content">
 					<GasFeeInfo gasFee={gasFee} />
@@ -323,8 +372,8 @@ function App() {
 										/>
 									</PDFViewer>
 									<button
-										className="mt-4 py-2 px-4 border-2 rounded-xl font-semibold bg-white border-gray-300 cursor-pointer transition-all ease-in hover:bg-gray-200"
-										onClick={() => setShowInvoice(true)}
+										className="mt-4 py-2 px-4 border-2 rounded-xl font-semibold bg-black text-white border-black cursor-pointer transition-all ease-in hover:bg-gray-700"
+										onClick={setSaveInvoice}
 									>
 										Save Invoice
 									</button>

@@ -108,12 +108,8 @@ const DashboardMenu = ({ address }: { address: string | undefined }) => {
 	);
 };
 
-function App() {
-	const { address } = useAccount();
-	const [menu, setMenu] = useState("create");
-	const [showGasFeeInfo, setShowGasFeeInfo] = useState(false);
+const CreateInvoiceMenu = ({ address }: { address: string | undefined }) => {
 	const [showInvoice, setShowInvoice] = useState(false);
-	const [gasFee, setGasFee] = useState<FeeData>();
 	const [invoiceName, setInvoiceName] = useState("");
 	const [invoiceCustomerName, setInvoiceCustomerName] = useState("");
 	const [invoiceCustomerLabel, setInvoiceCustomerLabel] = useState("");
@@ -148,17 +144,6 @@ function App() {
 	};
 
 	useEffect(() => {
-		(async () => {
-			try {
-				const { data } = await APIHelper.getNetworkGas();
-				setGasFee(data);
-			} catch (e) {
-				console.error(e);
-			}
-		})();
-	}, []);
-
-	useEffect(() => {
 		if (address) {
 			setInvoiceWallet(address);
 			const invoiceData = localStorage.getItem("invoiceData");
@@ -178,6 +163,148 @@ function App() {
 			}
 		}
 	}, [address]);
+
+	return (
+		<div>
+			<h2 className="mb-3 text-2xl font-semibold">Create Invoice</h2>
+			<div className="mb-1 grid grid-cols-3 gap-4">
+				<div>
+					<label className="text-sm font-semibold">Your Name</label>
+					<input type="text" className="w-full px-2 border-2 rounded-xl" placeholder="Your name..." value={invoiceName} onChange={(e) => setInvoiceName(e.target.value)} />
+				</div>
+				<div>
+					<label className="text-sm font-semibold">Customer Name</label>
+					<input
+						type="text"
+						className="w-full px-2 border-2 rounded-xl"
+						placeholder="Customer name..."
+						value={invoiceCustomerName}
+						onChange={(e) => setInvoiceCustomerName(e.target.value)}
+					/>
+				</div>
+				<div>
+					<label className="text-sm font-semibold">Customer Label</label>
+					<input
+						type="text"
+						className="w-full px-2 border-2 rounded-xl"
+						placeholder="Customer label..."
+						value={invoiceCustomerLabel}
+						onChange={(e) => setInvoiceCustomerLabel(e.target.value)}
+					/>
+				</div>
+			</div>
+			<div className="grid grid-cols-3 gap-4">
+				<div>
+					<label className="text-sm font-semibold">Invoice No</label>
+					<input type="text" className="w-full px-2 border-2 rounded-xl" placeholder="Invoice no..." value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} />
+				</div>
+				<div>
+					<label className="text-sm font-semibold">Invoice Date</label>
+					<input type="date" className="w-full px-2 border-2 rounded-xl" placeholder="Invoice date..." value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
+				</div>
+				<div>
+					<label className="text-sm font-semibold">Invoice Due Date</label>
+					<input type="date" className="w-full px-2 border-2 rounded-xl" placeholder="Invoice due date..." value={invoiceDueDate} onChange={(e) => setInvoiceDueDate(e.target.value)} />
+				</div>
+			</div>
+			<div className="grid grid-cols-3 gap-4">
+				<div className="col-span-2">
+					<label className="text-sm font-semibold">Your recipient address</label>
+					<input type="text" className="w-full px-2 border-2 rounded-xl" placeholder="Your recipient address..." value={invoiceWallet} onChange={(e) => setInvoiceWallet(e.target.value)} />
+				</div>
+				<div>
+					<label className="text-sm font-semibold">Payment token</label>
+					<select className="w-full px-2 border-2 rounded-xl" value={invoiceCurrency} onChange={(e) => setInvoiceCurrency(e.target.value)}>
+						<option>--Choose token--</option>
+						<option value="0xdac17f958d2ee523a2206206994597c13d831ec7">USDT</option>
+						<option value="0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48">USDC</option>
+					</select>
+				</div>
+			</div>
+			<p className="mt-4 text-md font-bold">Item List</p>
+			<div className="grid grid-cols-6 gap-4">
+				<div className="col-span-3">
+					<label className="text-sm font-semibold">Description</label>
+					<input
+						type="text"
+						className="w-full px-2 border-2 rounded-xl text-left"
+						placeholder="Your item description..."
+						value={invoiceItemDescription}
+						onChange={(e) => setInvoiceItemDescription(e.target.value)}
+					/>
+				</div>
+				<div className="col-span-1">
+					<label className="text-sm font-semibold">Price ($)</label>
+					<input
+						type="number"
+						className="w-full px-2 border-2 rounded-xl text-center"
+						placeholder="$..."
+						value={invoiceItemPrice}
+						onChange={(e) => setInvoiceItemPrice(Number(e.target.value))}
+					/>
+				</div>
+				<div className="col-span-1">
+					<label className="text-sm font-semibold">Qty</label>
+					<input type="number" className="w-full px-2 border-2 rounded-xl text-center" placeholder="..." value={invoiceItemQty} onChange={(e) => setInvoiceItemQty(Number(e.target.value))} />
+				</div>
+				<div className="col-span-1">
+					<label className="text-sm font-semibold">Total ($)</label>
+					<input disabled type="text" className="w-full px-2 border-2 rounded-xl bg-gray-200 text-right" value={invoiceItemTotal} />
+				</div>
+			</div>
+			<div className="mx-auto mb-4">
+				<button
+					className="mt-4 py-2 px-4 border-2 rounded-xl font-semibold bg-white border-gray-300 cursor-pointer transition-all ease-in hover:bg-gray-200"
+					onClick={() => setShowInvoice(true)}
+				>
+					Generate Invoice
+				</button>
+			</div>
+			{showInvoice && (
+				<>
+					<PDFViewer className="w-full min-h-screen">
+						<PDFDocument
+							invoiceName={invoiceName}
+							invoiceCustomerLabel={invoiceCustomerLabel}
+							invoiceCustomerName={invoiceCustomerName}
+							invoiceNumber={invoiceNumber}
+							invoiceDate={invoiceDate}
+							invoiceDueDate={invoiceDueDate}
+							invoiceWallet={invoiceWallet}
+							invoiceCurrency={invoiceCurrency}
+							invoiceItemDescription={invoiceItemDescription}
+							invoiceItemPrice={invoiceItemPrice}
+							invoiceItemQty={invoiceItemQty}
+						/>
+					</PDFViewer>
+					<button
+						className="mt-4 py-2 px-4 border-2 rounded-xl font-semibold bg-black text-white border-black cursor-pointer transition-all ease-in hover:bg-gray-700"
+						onClick={setSaveInvoice}
+					>
+						Save Invoice
+					</button>
+				</>
+			)}
+		</div>
+	);
+};
+
+function App() {
+	const { address } = useAccount();
+	const [menu, setMenu] = useState("create");
+	const [showGasFeeInfo, setShowGasFeeInfo] = useState(false);
+	const [gasFee, setGasFee] = useState<FeeData>();
+
+	useEffect(() => {
+		(async () => {
+			try {
+				const { data } = await APIHelper.getNetworkGas();
+				setGasFee(data);
+			} catch (e) {
+				console.error(e);
+			}
+		})();
+	}, []);
 
 	return (
 		<div className="container min-h-screen mb-12">
@@ -234,153 +361,7 @@ function App() {
 				</nav>
 				<div className="menu-box p-4 md:col-span-3 border-2 border-gray-200 rounded-xl bg-white">
 					{menu === "home" && <DashboardMenu address={address} />}
-					{menu === "create" && (
-						<div>
-							<h2 className="mb-3 text-2xl font-semibold">Create Invoice</h2>
-							<div className="mb-1 grid grid-cols-3 gap-4">
-								<div>
-									<label className="text-sm font-semibold">Your Name</label>
-									<input type="text" className="w-full px-2 border-2 rounded-xl" placeholder="Your name..." value={invoiceName} onChange={(e) => setInvoiceName(e.target.value)} />
-								</div>
-								<div>
-									<label className="text-sm font-semibold">Customer Name</label>
-									<input
-										type="text"
-										className="w-full px-2 border-2 rounded-xl"
-										placeholder="Customer name..."
-										value={invoiceCustomerName}
-										onChange={(e) => setInvoiceCustomerName(e.target.value)}
-									/>
-								</div>
-								<div>
-									<label className="text-sm font-semibold">Customer Label</label>
-									<input
-										type="text"
-										className="w-full px-2 border-2 rounded-xl"
-										placeholder="Customer label..."
-										value={invoiceCustomerLabel}
-										onChange={(e) => setInvoiceCustomerLabel(e.target.value)}
-									/>
-								</div>
-							</div>
-							<div className="grid grid-cols-3 gap-4">
-								<div>
-									<label className="text-sm font-semibold">Invoice No</label>
-									<input
-										type="text"
-										className="w-full px-2 border-2 rounded-xl"
-										placeholder="Invoice no..."
-										value={invoiceNumber}
-										onChange={(e) => setInvoiceNumber(e.target.value)}
-									/>
-								</div>
-								<div>
-									<label className="text-sm font-semibold">Invoice Date</label>
-									<input type="date" className="w-full px-2 border-2 rounded-xl" placeholder="Invoice date..." value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} />
-								</div>
-								<div>
-									<label className="text-sm font-semibold">Invoice Due Date</label>
-									<input
-										type="date"
-										className="w-full px-2 border-2 rounded-xl"
-										placeholder="Invoice due date..."
-										value={invoiceDueDate}
-										onChange={(e) => setInvoiceDueDate(e.target.value)}
-									/>
-								</div>
-							</div>
-							<div className="grid grid-cols-3 gap-4">
-								<div className="col-span-2">
-									<label className="text-sm font-semibold">Your recipient address</label>
-									<input
-										type="text"
-										className="w-full px-2 border-2 rounded-xl"
-										placeholder="Your recipient address..."
-										value={invoiceWallet}
-										onChange={(e) => setInvoiceWallet(e.target.value)}
-									/>
-								</div>
-								<div>
-									<label className="text-sm font-semibold">Payment token</label>
-									<select className="w-full px-2 border-2 rounded-xl" value={invoiceCurrency} onChange={(e) => setInvoiceCurrency(e.target.value)}>
-										<option>--Choose token--</option>
-										<option value="0xdac17f958d2ee523a2206206994597c13d831ec7">USDT</option>
-										<option value="0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48">USDC</option>
-									</select>
-								</div>
-							</div>
-							<p className="mt-4 text-md font-bold">Item List</p>
-							<div className="grid grid-cols-6 gap-4">
-								<div className="col-span-3">
-									<label className="text-sm font-semibold">Description</label>
-									<input
-										type="text"
-										className="w-full px-2 border-2 rounded-xl text-left"
-										placeholder="Your item description..."
-										value={invoiceItemDescription}
-										onChange={(e) => setInvoiceItemDescription(e.target.value)}
-									/>
-								</div>
-								<div className="col-span-1">
-									<label className="text-sm font-semibold">Price ($)</label>
-									<input
-										type="number"
-										className="w-full px-2 border-2 rounded-xl text-center"
-										placeholder="$..."
-										value={invoiceItemPrice}
-										onChange={(e) => setInvoiceItemPrice(Number(e.target.value))}
-									/>
-								</div>
-								<div className="col-span-1">
-									<label className="text-sm font-semibold">Qty</label>
-									<input
-										type="number"
-										className="w-full px-2 border-2 rounded-xl text-center"
-										placeholder="..."
-										value={invoiceItemQty}
-										onChange={(e) => setInvoiceItemQty(Number(e.target.value))}
-									/>
-								</div>
-								<div className="col-span-1">
-									<label className="text-sm font-semibold">Total ($)</label>
-									<input disabled type="text" className="w-full px-2 border-2 rounded-xl bg-gray-200 text-right" value={invoiceItemTotal} />
-								</div>
-							</div>
-							<div className="mx-auto mb-4">
-								<button
-									className="mt-4 py-2 px-4 border-2 rounded-xl font-semibold bg-white border-gray-300 cursor-pointer transition-all ease-in hover:bg-gray-200"
-									onClick={() => setShowInvoice(true)}
-								>
-									Generate Invoice
-								</button>
-							</div>
-							{showInvoice && (
-								<>
-									<PDFViewer className="w-full min-h-screen">
-										<PDFDocument
-											invoiceName={invoiceName}
-											invoiceCustomerLabel={invoiceCustomerLabel}
-											invoiceCustomerName={invoiceCustomerName}
-											invoiceNumber={invoiceNumber}
-											invoiceDate={invoiceDate}
-											invoiceDueDate={invoiceDueDate}
-											invoiceWallet={invoiceWallet}
-											invoiceCurrency={invoiceCurrency}
-											invoiceItemDescription={invoiceItemDescription}
-											invoiceItemPrice={invoiceItemPrice}
-											invoiceItemQty={invoiceItemQty}
-										/>
-									</PDFViewer>
-									<button
-										className="mt-4 py-2 px-4 border-2 rounded-xl font-semibold bg-black text-white border-black cursor-pointer transition-all ease-in hover:bg-gray-700"
-										onClick={setSaveInvoice}
-									>
-										Save Invoice
-									</button>
-								</>
-							)}
-						</div>
-					)}
+					{menu === "create" && <CreateInvoiceMenu address={address} />}
 					{menu === "list" && (
 						<div>
 							<h2 className="text-2xl font-semibold">Track Invoice</h2>

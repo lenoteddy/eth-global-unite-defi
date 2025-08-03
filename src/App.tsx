@@ -95,6 +95,11 @@ const DashboardMenu = ({ address }: { address: string | undefined }) => {
 	return (
 		<div>
 			<h2 className="text-2xl font-semibold">Dashboard</h2>
+			<p className="mt-2 mb-4 italic">
+				Welcome to PaperMint!
+				<br />
+				It enable everyone to manage crypto invoicing easily, powered by 1inch 🚀
+			</p>
 			<div className="mt-2">
 				<div>Token Balances:</div>
 				<ul className="pl-4 list-disc">

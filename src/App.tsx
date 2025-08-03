@@ -462,9 +462,15 @@ function App() {
 					</ul>
 				</nav>
 				<div className="p-4 md:col-span-3 border-2 border-gray-200 rounded-xl bg-white">
-					{menu === "home" && <DashboardMenu address={address} />}
-					{menu === "create" && <CreateInvoiceMenu address={address} />}
-					{menu === "track" && <TrackInvoiceMenu address={address} />}
+					{address ? (
+						<>
+							{menu === "home" && <DashboardMenu address={address} />}
+							{menu === "create" && <CreateInvoiceMenu address={address} />}
+							{menu === "track" && <TrackInvoiceMenu address={address} />}
+						</>
+					) : (
+						<div className="mt-4 mx-auto text-center text-2xl font-bold"> Please connect your wallet to continue!</div>
+					)}
 				</div>
 			</main>
 			<footer>

@@ -332,9 +332,8 @@ const TrackInvoiceMenu = ({ address }: { address: string | undefined }) => {
 					return;
 				}
 			});
-			return;
 		}
-		setCheckMsg("No payment transaction found!");
+		if (!txHash) setCheckMsg("No payment transaction found!");
 	};
 
 	useEffect(() => {

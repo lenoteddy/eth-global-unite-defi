@@ -21,6 +21,7 @@ type FeeData = {
 };
 
 type InvoiceProps = {
+	invoiceTimestamp: number;
 	invoiceName: string;
 	invoiceCustomerLabel: string;
 	invoiceCustomerName: string;
@@ -99,7 +100,7 @@ const DashboardMenu = ({ address }: { address: string | undefined }) => {
 				<ul className="pl-4 list-disc">
 					{Object.entries(balances).map(([key, val]) => (
 						<li key={key}>
-							{StringHelper.tokenAddressValue(key, val)} {StringHelper.tokenAddressName(key)}
+							{val / Math.pow(10, StringHelper.tokenAddressDecimal(key))} {StringHelper.tokenAddressName(key)}
 						</li>
 					))}
 				</ul>
@@ -126,7 +127,9 @@ const CreateInvoiceMenu = ({ address }: { address: string | undefined }) => {
 	}, [invoiceItemPrice, invoiceItemQty]);
 
 	const setSaveInvoice = () => {
+		const currentTime = new Date().getTime();
 		const invoice = {
+			invoiceTimestamp: currentTime,
 			invoiceName,
 			invoiceCustomerName,
 			invoiceCustomerLabel,
@@ -290,6 +293,9 @@ const CreateInvoiceMenu = ({ address }: { address: string | undefined }) => {
 };
 
 const TrackInvoiceMenu = ({ address }: { address: string | undefined }) => {
+	const [checkMsg, setCheckMsg] = useState("");
+	const [txHash, setTxHash] = useState("");
+	const [invoiceTimestamp, setInvoiceTimestamp] = useState(0);
 	const [invoiceName, setInvoiceName] = useState("");
 	const [invoiceCustomerName, setInvoiceCustomerName] = useState("");
 	const [invoiceCustomerLabel, setInvoiceCustomerLabel] = useState("");
@@ -305,12 +311,34 @@ const TrackInvoiceMenu = ({ address }: { address: string | undefined }) => {
 		return invoiceItemPrice * invoiceItemQty;
 	}, [invoiceItemPrice, invoiceItemQty]);
 
+	const checkPayment = async () => {
+		if (!address) {
+			alert("");
+			return;
+		}
+		const currentTime = new Date().getTime();
+		const result = await APIHelper.getCheckPayment({ address, from: invoiceTimestamp, to: currentTime, token: invoiceCurrency });
+		if (result.data.items) {
+			const amount = invoiceItemTotal * Math.pow(10, StringHelper.tokenAddressDecimal(invoiceCurrency));
+			result.data.items.map((val: { details: { tokenActions: { amount: number }[]; txHash: string } }) => {
+				if (Number(val?.details?.tokenActions[0].amount) === Number(amount)) {
+					setCheckMsg("Payment transaction found! Please check this txHash:");
+					setTxHash(val?.details?.txHash);
+					return;
+				}
+			});
+			return;
+		}
+		setCheckMsg("No payment transaction found!");
+	};
+
 	useEffect(() => {
 		if (address) {
 			setInvoiceWallet(address);
 			const invoiceData = localStorage.getItem("invoiceData");
 			if (invoiceData) {
 				const invoice: InvoiceProps = JSON.parse(invoiceData);
+				setInvoiceTimestamp(invoice.invoiceTimestamp);
 				setInvoiceName(invoice.invoiceName);
 				setInvoiceCustomerName(invoice.invoiceCustomerName);
 				setInvoiceCustomerLabel(invoice.invoiceCustomerLabel);
@@ -334,7 +362,15 @@ const TrackInvoiceMenu = ({ address }: { address: string | undefined }) => {
 				<div>
 					Amount: {invoiceItemTotal} ${StringHelper.tokenAddressName(invoiceCurrency)}
 				</div>
-				<button className="mt-1 py-2 px-4 border-2 rounded-xl font-semibold bg-black border-black text-white cursor-pointer transition-all ease-in hover:bg-gray-800">Check Payment</button>
+				<button className="mt-1 py-2 px-4 border-2 rounded-xl font-semibold bg-black border-black text-white cursor-pointer transition-all ease-in hover:bg-gray-800" onClick={checkPayment}>
+					Check Payment
+				</button>
+			</div>
+			<div className="mb-4">
+				{checkMsg && <div className="font-semibold">{checkMsg}</div>}
+				<a href={"https://etherscan.io/tx/" + txHash} target="_blank" className="font-medium text-blue-600 dark:text-blue-500 hover:underline">
+					{txHash}
+				</a>
 			</div>
 			<PDFViewer className="w-full min-h-screen">
 				<PDFDocument
@@ -417,7 +453,7 @@ function App() {
 						</li>
 						<li className="pb-1">
 							<button
-								className={"menu w-full px-4 py-2 text-left font-semibold bg-gray-200 rounded-xl cursor-pointer " + (menu === "list" ? "active" : "")}
+								className={"menu w-full px-4 py-2 text-left font-semibold bg-gray-200 rounded-xl cursor-pointer " + (menu === "track" ? "active" : "")}
 								onClick={() => setMenu("track")}
 							>
 								Track Invoice
@@ -425,7 +461,7 @@ function App() {
 						</li>
 					</ul>
 				</nav>
-				<div className="menu-box p-4 md:col-span-3 border-2 border-gray-200 rounded-xl bg-white">
+				<div className="p-4 md:col-span-3 border-2 border-gray-200 rounded-xl bg-white">
 					{menu === "home" && <DashboardMenu address={address} />}
 					{menu === "create" && <CreateInvoiceMenu address={address} />}
 					{menu === "track" && <TrackInvoiceMenu address={address} />}
